@@ -10,6 +10,7 @@ using System.Windows.Threading;
 using DS4WinWPF.DS4Control;
 using Microsoft.Win32;
 using Sensorit.Base;
+using DS4WinWPF.DS4Library.InputDevices;
 
 namespace DS4Windows
 {
@@ -1348,6 +1349,10 @@ namespace DS4Windows
 
             device.setIdleTimeout(getIdleDisconnectTimeout(ind));
             device.setBTPollRate(getBTPollRate(ind));
+
+            if (device is DualSenseDevice)
+                ((DualSenseDevice)device).SetResistiveTriggerSetting(getResistTriggerState(ind));
+
             touchPad[ind].ResetTrackAccel(getTrackballFriction(ind));
             if (!startUp)
             {

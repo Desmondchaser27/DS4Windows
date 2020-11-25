@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using Microsoft.Win32;
 using NonFormTimer = System.Timers.Timer;
 using DS4WinWPF.DS4Forms.ViewModels;
+using DS4WinWPF.DS4Library.InputDevices;
 using DS4Windows;
 
 namespace DS4WinWPF.DS4Forms
@@ -87,6 +88,7 @@ namespace DS4WinWPF.DS4Forms
 
         private void SetupEvents()
         {
+            resistTriggerPresets.SelectionChanged += ResistTriggerPresets_SelectionChanged;
             gyroOutModeCombo.SelectionChanged += GyroOutModeCombo_SelectionChanged;
             outConTypeCombo.SelectionChanged += OutConTypeCombo_SelectionChanged;
             mappingListBox.SelectionChanged += MappingListBox_SelectionChanged;
@@ -97,6 +99,24 @@ namespace DS4WinWPF.DS4Forms
             profileSettingsVM.R2DeadZoneChanged += UpdateReadingsR2DeadZone;
             profileSettingsVM.SXDeadZoneChanged += UpdateReadingsSXDeadZone;
             profileSettingsVM.SZDeadZoneChanged += UpdateReadingsSZDeadZone;
+        }
+
+        //Send Resistive Trigger Presets to controller.
+        private void ResistTriggerPresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            //byte[] profileOutput = new byte[22];
+
+            if (deviceNum < 8)
+            {
+                if (App.rootHub.DS4Controllers[deviceNum] is DualSenseDevice)
+                {
+                    AppLogger.LogToGui("DualSense is connected!", false, true);
+                    //Calling local function in DualSenseDevice.cs to setup values based on selection
+                    ((DualSenseDevice)App.rootHub.DS4Controllers[deviceNum]).SetResistiveTriggerSetting(resistTriggerPresets.SelectedIndex);
+                }
+                else
+                    AppLogger.LogToGui("Not a DualSense Device!", false, true);
+            }
         }
 
         private void SetupGyroPanel()
@@ -700,6 +720,7 @@ namespace DS4WinWPF.DS4Forms
         private void SetLateProperties()
         {
             Global.BTPollRate[deviceNum] = profileSettingsVM.TempBTPollRateIndex;
+            Global.ResistTriggerState[deviceNum] = profileSettingsVM.TempResistTriggerPresetIndex;
             Global.OutContType[deviceNum] = profileSettingsVM.TempConType;
             Global.outDevTypeTemp[deviceNum] = OutContType.X360;
         }

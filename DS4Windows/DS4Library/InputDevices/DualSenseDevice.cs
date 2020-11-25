@@ -56,6 +56,11 @@ namespace DS4WinWPF.DS4Library.InputDevices
         private byte[] outputBTCrc32Head = new byte[] { 0xA2 };
         private byte outputPendCount = 0;
 
+        private byte[] resistiveTriggerOutputs = new byte[22];
+        private bool resistiveTriggerChanged = false;
+
+        private byte deviceNo = 0;
+
         public override event ReportHandler<EventArgs> Report = null;
         public override event EventHandler BatteryChanged;
         public override event EventHandler ChargingChanged;
@@ -216,6 +221,9 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 //    ds4Output.Start();
                 //}
 
+                //Determine the player number before last, so when lights sent we know the number
+                FindControllerNumber();
+
                 ds4Input = new Thread(ReadInput);
                 ds4Input.Priority = ThreadPriority.AboveNormal;
                 ds4Input.Name = "DualSense Input thread: " + Mac;
@@ -246,6 +254,180 @@ namespace DS4WinWPF.DS4Library.InputDevices
                     Thread.Sleep(READ_STREAM_TIMEOUT);
                 }
             }
+        }
+
+        protected int resistiveTrigger;
+
+        public int ResistiveTriggerIndex
+        {
+            get { return resistiveTrigger; }
+            set
+            {
+                if (resistiveTrigger != value && value >= 0 && value <= 2)
+                {
+                    resistiveTrigger = value;
+                }
+                else
+                    resistiveTrigger = 0;
+            }
+        }
+
+        public int GetResistiveTriggerSetting()
+        {
+            return resistiveTrigger;
+        }
+
+        public void SetResistiveTriggerSetting(int value)
+        {
+            if (resistiveTrigger != value && value >= 0 && value <= 2)
+            {
+                resistiveTrigger = value;
+                UpdateResistiveTriggerOutput(resistiveTrigger);
+            }
+            else
+                resistiveTrigger = 0;
+        }
+
+        private void FindControllerNumber()
+        {
+            DS4Device[] temp = App.rootHub.DS4Controllers;
+            int initialNum = 0;
+            for (int devNo = 0; devNo < temp.Length; devNo++)
+            {
+                if (temp[devNo] != null)
+                {
+                    if (temp[devNo].HidDevice.IsConnected && temp[devNo] == this)
+                    {
+                        initialNum = devNo;
+                    }
+                }
+            }
+
+            //convert to proper byte value for controller light
+            if (initialNum == 0)
+                initialNum = 1;
+            else if (initialNum < 6)
+                initialNum = (int)((Math.Pow(2, initialNum)));
+            else
+                //If we go above player 5 just null out, probably too confusing for normal players to use binary for player number.
+                initialNum = 0;
+            //Should never be higher than the max player number for dualsense (caps at 8) but just mod it so we at least get a devNumber...
+            deviceNo = (byte)(initialNum % 0x1F);
+        }
+
+        //Function to call for modifying the Resistive Trigger types
+        // Should be 22 values to edit, 11 for each trigger
+        private void UpdateResistiveTriggerOutput(int index)
+        {
+            switch (index)
+            {
+                //Off, everything is zero
+                case 0:
+                    resistiveTriggerOutputs[0] = 0x00;
+                    resistiveTriggerOutputs[1] = 0x00;
+                    resistiveTriggerOutputs[2] = 0x00;
+                    resistiveTriggerOutputs[3] = 0x00;
+                    resistiveTriggerOutputs[4] = 0x00;
+                    resistiveTriggerOutputs[5] = 0x00;
+                    resistiveTriggerOutputs[6] = 0x00;
+                    resistiveTriggerOutputs[7] = 0x00;
+                    resistiveTriggerOutputs[8] = 0x00;
+                    resistiveTriggerOutputs[9] = 0x00;
+                    resistiveTriggerOutputs[10] = 0x00;
+
+                    resistiveTriggerOutputs[11] = 0x00;
+                    resistiveTriggerOutputs[12] = 0x00;
+                    resistiveTriggerOutputs[13] = 0x00;
+                    resistiveTriggerOutputs[14] = 0x00;
+                    resistiveTriggerOutputs[15] = 0x00;
+                    resistiveTriggerOutputs[16] = 0x00;
+                    resistiveTriggerOutputs[17] = 0x00;
+                    resistiveTriggerOutputs[18] = 0x00;
+                    resistiveTriggerOutputs[19] = 0x00;
+                    resistiveTriggerOutputs[20] = 0x00;
+                    resistiveTriggerOutputs[21] = 0x00;
+                    break;
+                //Gamecube Trigger preset
+                case 1:
+                    resistiveTriggerOutputs[0] = 0x02;
+                    resistiveTriggerOutputs[1] = 0x95;
+                    resistiveTriggerOutputs[2] = 0xc0;
+                    resistiveTriggerOutputs[3] = 0xff;
+                    resistiveTriggerOutputs[4] = 0xff;
+                    resistiveTriggerOutputs[5] = 0xff;
+                    resistiveTriggerOutputs[6] = 0xff;
+                    resistiveTriggerOutputs[7] = 0xff;
+                    resistiveTriggerOutputs[8] = 0xff;
+                    resistiveTriggerOutputs[9] = 0xff;
+                    resistiveTriggerOutputs[10] = 0xff;
+
+                    resistiveTriggerOutputs[11] = 0x02;
+                    resistiveTriggerOutputs[12] = 0x95;
+                    resistiveTriggerOutputs[13] = 0xc0;
+                    resistiveTriggerOutputs[14] = 0xff;
+                    resistiveTriggerOutputs[15] = 0xff;
+                    resistiveTriggerOutputs[16] = 0xff;
+                    resistiveTriggerOutputs[17] = 0xff;
+                    resistiveTriggerOutputs[18] = 0xff;
+                    resistiveTriggerOutputs[19] = 0xff;
+                    resistiveTriggerOutputs[20] = 0xff;
+                    resistiveTriggerOutputs[21] = 0xff;
+                    break;
+                //GTA IV Trigger preset
+                case 2:
+                    resistiveTriggerOutputs[0] = 0x01;
+                    resistiveTriggerOutputs[1] = 0x48;
+                    resistiveTriggerOutputs[2] = 0x40;
+                    resistiveTriggerOutputs[3] = 0xff;
+                    resistiveTriggerOutputs[4] = 0xff;
+                    resistiveTriggerOutputs[5] = 0xff;
+                    resistiveTriggerOutputs[6] = 0xff;
+                    resistiveTriggerOutputs[7] = 0xff;
+                    resistiveTriggerOutputs[8] = 0xff;
+                    resistiveTriggerOutputs[9] = 0xff;
+                    resistiveTriggerOutputs[10] = 0xff;
+
+                    resistiveTriggerOutputs[11] = 0x01;
+                    resistiveTriggerOutputs[12] = 0x48;
+                    resistiveTriggerOutputs[13] = 0x40;
+                    resistiveTriggerOutputs[14] = 0xff;
+                    resistiveTriggerOutputs[15] = 0xff;
+                    resistiveTriggerOutputs[16] = 0xff;
+                    resistiveTriggerOutputs[17] = 0xff;
+                    resistiveTriggerOutputs[18] = 0xff;
+                    resistiveTriggerOutputs[19] = 0xff;
+                    resistiveTriggerOutputs[20] = 0xff;
+                    resistiveTriggerOutputs[21] = 0xff;
+                    break;
+                //Starting preset, off
+                default:
+                    resistiveTriggerOutputs[0] = 0x00;
+                    resistiveTriggerOutputs[1] = 0x00;
+                    resistiveTriggerOutputs[2] = 0x00;
+                    resistiveTriggerOutputs[3] = 0x00;
+                    resistiveTriggerOutputs[4] = 0x00;
+                    resistiveTriggerOutputs[5] = 0x00;
+                    resistiveTriggerOutputs[6] = 0x00;
+                    resistiveTriggerOutputs[7] = 0x00;
+                    resistiveTriggerOutputs[8] = 0x00;
+                    resistiveTriggerOutputs[9] = 0x00;
+                    resistiveTriggerOutputs[10] = 0x00;
+
+                    resistiveTriggerOutputs[11] = 0x00;
+                    resistiveTriggerOutputs[12] = 0x00;
+                    resistiveTriggerOutputs[13] = 0x00;
+                    resistiveTriggerOutputs[14] = 0x00;
+                    resistiveTriggerOutputs[15] = 0x00;
+                    resistiveTriggerOutputs[16] = 0x00;
+                    resistiveTriggerOutputs[17] = 0x00;
+                    resistiveTriggerOutputs[18] = 0x00;
+                    resistiveTriggerOutputs[19] = 0x00;
+                    resistiveTriggerOutputs[20] = 0x00;
+                    resistiveTriggerOutputs[21] = 0x00;
+                    break;
+            }
+
+            resistiveTriggerChanged = true; 
         }
 
         private unsafe void ReadInput()
@@ -656,6 +838,8 @@ namespace DS4WinWPF.DS4Library.InputDevices
                             {
                                 if (DisconnectBT(true))
                                 {
+                                    //Basically clear report and write one more time to disable everything.
+                                    ClearLEDTriggerOutputReport();
                                     exitInputThread = true;
                                     timeoutExecuted = true;
                                     return; // all done
@@ -700,6 +884,8 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 }
             }
 
+            //Basically clear report and write one more time to disable everything.
+            ClearLEDTriggerOutputReport();
             timeoutExecuted = true;
         }
 
@@ -713,6 +899,54 @@ namespace DS4WinWPF.DS4Library.InputDevices
 
             outputReport[0] = conType == ConnectionType.USB ? OUTPUT_REPORT_ID_USB :
                 OUTPUT_REPORT_ID_BT;
+
+            WriteReport();
+        }
+
+        //Used to clear resistive triggers and player LEDs before exit
+        private void ClearLEDTriggerOutputReport()
+        {
+
+            //clear all resistive trigger reports
+            outputReport[12] = 0x00;
+            outputReport[13] = 0x00;
+            outputReport[14] = 0x00;
+            outputReport[15] = 0x00;
+            outputReport[16] = 0x00;
+            outputReport[17] = 0x00;
+            outputReport[18] = 0x00;
+            outputReport[19] = 0x00;
+            outputReport[20] = 0x00;
+            outputReport[21] = 0x00;
+            outputReport[22] = 0x00;
+
+            outputReport[23] = 0x00;
+            outputReport[24] = 0x00;
+            outputReport[25] = 0x00;
+            outputReport[26] = 0x00;
+            outputReport[27] = 0x00;
+            outputReport[28] = 0x00;
+            outputReport[29] = 0x00;
+            outputReport[30] = 0x00;
+            outputReport[31] = 0x00;
+            outputReport[32] = 0x00;
+            outputReport[33] = 0x00;
+
+            //clear player LED lights
+            outputReport[45] = 0x00;
+
+            uint calcCrc32 = 0;
+
+            int crcOffset = 0;
+            int crcpos = BT_OUTPUT_REPORT_LENGTH - 4;
+            calcCrc32 = ~Crc32Algorithm.Compute(outputBTCrc32Head);
+            //calcCrc32 = ~Crc32Algorithm.CalculateBasicHash(ref calcCrc32, ref outputReport, 0, BT_OUTPUT_REPORT_LENGTH-4);
+            calcCrc32 = ~Crc32Algorithm.CalculateFasterBTHash(ref calcCrc32, ref outputReport, ref crcOffset, ref crcpos);
+
+            outputReport[74] = (byte)calcCrc32;
+            outputReport[75] = (byte)(calcCrc32 >> 8);
+            outputReport[76] = (byte)(calcCrc32 >> 16);
+            outputReport[77] = (byte)(calcCrc32 >> 24);
 
             WriteReport();
         }
@@ -753,7 +987,7 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 // 0x20 Enable internal speaker (even while headset is connected)
                 // 0x40 Enable modification of microphone volume
                 // 0x80 Enable internal mic (even while headset is connected)
-                outputReport[1] = 0x03; // 0x02 | 0x01
+                outputReport[1] = 0x0F; // 0x08 | 0x04 | 0x02 | 0x01
 
                 // 0x01 Toggling microphone LED, 0x02 Toggling Audio/Mic Mute
                 // 0x04 Toggling LED strips on the sides of the Touchpad, 0x08 Turn off all LED lights
@@ -783,6 +1017,51 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 // Mute button LED. 0x01 = Solid. 0x02 = Pulsating
                 outputReport[9] = 0x00;
 
+                // Right Trigger out[11] / Left Trigger out[22] Resistive Haptics
+                /*
+                 * 0x00 off
+                 * 0x01 "Slow/Heavy" trigger
+                 * 0x02 "Snap" during pull of trigger
+                */
+                //out[12]/out[23]
+                /*
+                 * 0x00 off
+                 * Values range 0x01 - 0xFF
+                 * These addresses determine at what point during trigger press the effect starts
+                 * 0xFF is highest point on trigger (entire trigger press), 0x01 is lowest trigger press (pressed all the way down)
+                */
+                //out[13]/out[24]
+                /*
+                 * 0x00 off
+                 * Values range 0x01 - 0xFF
+                 * This value determines the roughness/pressure required for press.
+                 * 0x01 is lowest effort required, 0xFF is most effort required.
+                */
+
+                outputReport[11] = resistiveTriggerOutputs[0];
+                outputReport[12] = resistiveTriggerOutputs[1];
+                outputReport[13] = resistiveTriggerOutputs[2];
+                outputReport[14] = resistiveTriggerOutputs[3];
+                outputReport[15] = resistiveTriggerOutputs[4];
+                outputReport[16] = resistiveTriggerOutputs[5];
+                outputReport[17] = resistiveTriggerOutputs[6];
+                outputReport[18] = resistiveTriggerOutputs[7];
+                outputReport[19] = resistiveTriggerOutputs[8];
+                outputReport[20] = resistiveTriggerOutputs[9];
+                outputReport[21] = resistiveTriggerOutputs[10];
+
+                outputReport[22] = resistiveTriggerOutputs[11];
+                outputReport[23] = resistiveTriggerOutputs[12];
+                outputReport[24] = resistiveTriggerOutputs[13];
+                outputReport[25] = resistiveTriggerOutputs[14];
+                outputReport[26] = resistiveTriggerOutputs[15];
+                outputReport[27] = resistiveTriggerOutputs[16];
+                outputReport[28] = resistiveTriggerOutputs[17];
+                outputReport[29] = resistiveTriggerOutputs[18];
+                outputReport[30] = resistiveTriggerOutputs[19];
+                outputReport[31] = resistiveTriggerOutputs[20];
+                outputReport[32] = resistiveTriggerOutputs[21];
+
                 // (lower nibble: main motor; upper nibble trigger effects) 0x00 to 0x07 - reduce overall power of the respective motors/effects by 12.5% per increment (this does not affect the regular trigger motor settings, just the automatically repeating trigger effects)
                 outputReport[37] = 0x04;
                 // Volume of internal speaker (0-7; ties in with index 6. The PS5 default appears to be set a 4)
@@ -802,15 +1081,18 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 // Bitmask 0x00-0x1F from left to right with 0x04 being the center LED. Bit 0x20 sets the brightness immediately with no fade in
                 outputReport[44] = 0x04;
                 //*/
+                outputReport[44] = deviceNo;
 
                 /* Lightbar colors */
                 outputReport[45] = currentHap.LightBarColor.red;
                 outputReport[46] = currentHap.LightBarColor.green;
                 outputReport[47] = currentHap.LightBarColor.blue;
 
-                if (!previousHapticState.Equals(currentHap))
+                //Should we go ahead and allow a new report to be written?
+                if (!previousHapticState.Equals(currentHap) || resistiveTriggerChanged)
                 {
                     change = true;
+                    resistiveTriggerChanged = false;
                 }
                 /*fixed (byte* bytePrevBuff = outputReport, byteTmpBuff = outReportBuffer)
                 {
@@ -830,6 +1112,8 @@ namespace DS4WinWPF.DS4Library.InputDevices
             }
             else
             {
+                //USING BLUETOOTH:
+
                 //outReportBuffer[0] = OUTPUT_REPORT_ID_BT; // Report ID
                 outputReport[0] = OUTPUT_REPORT_ID_BT; // Report ID
                 outputReport[1] = 0x02;
@@ -842,7 +1126,7 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 // 0x20 Enable internal speaker (even while headset is connected)
                 // 0x40 Enable modification of microphone volume
                 // 0x80 Enable internal mic (even while headset is connected)
-                outputReport[2] = 0x03; // 0x02 | 0x01;
+                outputReport[2] = 0x0F; // 0x08 | 0x04 | 0x02 | 0x01;
 
                 // 0x01 Toggling microphone LED, 0x02 Toggling Audio/Mic Mute
                 // 0x04 Toggling LED strips on the sides of the Touchpad, 0x08 Turn off all LED lights
@@ -872,6 +1156,36 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 // Mute button LED. 0x01 = Solid. 0x02 = Pulsating
                 outputReport[10] = 0x00;
 
+                // Right Trigger out[12] / Left Trigger out[23] Resistive Haptics
+                /*
+                 * 0x01 "Slow/Heavy" trigger
+                 * 0x02 "Snap" during pull of trigger
+                */
+
+                outputReport[12] = resistiveTriggerOutputs[0];
+                outputReport[13] = resistiveTriggerOutputs[1];
+                outputReport[14] = resistiveTriggerOutputs[2];
+                outputReport[15] = resistiveTriggerOutputs[3];
+                outputReport[16] = resistiveTriggerOutputs[4];
+                outputReport[17] = resistiveTriggerOutputs[5];
+                outputReport[18] = resistiveTriggerOutputs[6];
+                outputReport[19] = resistiveTriggerOutputs[7];
+                outputReport[20] = resistiveTriggerOutputs[8];
+                outputReport[21] = resistiveTriggerOutputs[9];
+                outputReport[22] = resistiveTriggerOutputs[10];
+
+                outputReport[23] = resistiveTriggerOutputs[11];
+                outputReport[24] = resistiveTriggerOutputs[12];
+                outputReport[25] = resistiveTriggerOutputs[13];
+                outputReport[26] = resistiveTriggerOutputs[14];
+                outputReport[27] = resistiveTriggerOutputs[15];
+                outputReport[28] = resistiveTriggerOutputs[16];
+                outputReport[29] = resistiveTriggerOutputs[17];
+                outputReport[30] = resistiveTriggerOutputs[18];
+                outputReport[31] = resistiveTriggerOutputs[19];
+                outputReport[32] = resistiveTriggerOutputs[20];
+                outputReport[33] = resistiveTriggerOutputs[21];
+
                 // (lower nibble: main motor; upper nibble trigger effects) 0x00 to 0x07 - reduce overall power of the respective motors/effects by 12.5% per increment (this does not affect the regular trigger motor settings, just the automatically repeating trigger effects)
                 outputReport[38] = 0x04;
                 // Volume of internal speaker (0-7; ties in with index 6. The PS5 default appears to be set a 4)
@@ -892,12 +1206,19 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 outputReport[45] = 0x04;
                 //*/
 
+                outputReport[45] = deviceNo;
+
                 /* Lightbar colors */
                 outputReport[46] = currentHap.LightBarColor.red;
                 outputReport[47] = currentHap.LightBarColor.green;
                 outputReport[48] = currentHap.LightBarColor.blue;
 
-                change = !previousHapticState.Equals(currentHap);
+                //Should we go ahead and allow a new report to be written?
+                if (!previousHapticState.Equals(currentHap) || resistiveTriggerChanged)
+                {
+                    change = true;
+                    resistiveTriggerChanged = false;
+                }
 
                 // Need to calculate and populate CRC32 data so controller will accept the report
                 uint calcCrc32 = 0;

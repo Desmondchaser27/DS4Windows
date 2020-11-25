@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Diagnostics;
 using Sensorit.Base;
 using System.Windows.Input;
+using DS4WinWPF.DS4Library.InputDevices;
 
 namespace DS4Windows
 {
@@ -1757,6 +1758,12 @@ namespace DS4Windows
             return m_Config.RSSens[index];
         }
 
+        public static int[] ResistTriggerState => m_Config.resistTriggerPresetIdx;
+        public static int getResistTriggerState(int index)
+        {
+            return m_Config.resistTriggerPresetIdx[index];
+        }
+
         public static int[] BTPollRate => m_Config.btPollRate;
         public static int getBTPollRate(int index)
         {
@@ -2329,6 +2336,7 @@ namespace DS4Windows
         public bool[] doubleTap = new bool[Global.TEST_PROFILE_ITEM_COUNT] { false, false, false, false, false, false, false, false, false };
         public int[] scrollSensitivity = new int[Global.TEST_PROFILE_ITEM_COUNT] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         public int[] touchpadInvert = new int[Global.TEST_PROFILE_ITEM_COUNT] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        public int[] resistTriggerPresetIdx = new int[Global.TEST_PROFILE_ITEM_COUNT] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
         public int[] btPollRate = new int[Global.TEST_PROFILE_ITEM_COUNT] { 4, 4, 4, 4, 4, 4, 4, 4, 4 };
         public int[] gyroMouseDZ = new int[Global.TEST_PROFILE_ITEM_COUNT] { MouseCursor.GYRO_MOUSE_DEADZONE, MouseCursor.GYRO_MOUSE_DEADZONE,
             MouseCursor.GYRO_MOUSE_DEADZONE, MouseCursor.GYRO_MOUSE_DEADZONE,
@@ -3077,6 +3085,7 @@ namespace DS4Windows
                 XmlNode xmlLSC = m_Xdoc.CreateNode(XmlNodeType.Element, "LSCurve", null); xmlLSC.InnerText = lsCurve[device].ToString(); rootElement.AppendChild(xmlLSC);
                 XmlNode xmlRSC = m_Xdoc.CreateNode(XmlNodeType.Element, "RSCurve", null); xmlRSC.InnerText = rsCurve[device].ToString(); rootElement.AppendChild(xmlRSC);
                 XmlNode xmlProfileActions = m_Xdoc.CreateNode(XmlNodeType.Element, "ProfileActions", null); xmlProfileActions.InnerText = string.Join("/", profileActions[device]); rootElement.AppendChild(xmlProfileActions);
+                XmlNode xmlResistiveTriggerPreset = m_Xdoc.CreateNode(XmlNodeType.Element, "ResistTriggerPresetIndex", null); xmlResistiveTriggerPreset.InnerText = resistTriggerPresetIdx[device].ToString(); rootElement.AppendChild(xmlResistiveTriggerPreset);
                 XmlNode xmlBTPollRate = m_Xdoc.CreateNode(XmlNodeType.Element, "BTPollRate", null); xmlBTPollRate.InnerText = btPollRate[device].ToString(); rootElement.AppendChild(xmlBTPollRate);
 
                 XmlNode xmlLsOutputCurveMode = m_Xdoc.CreateNode(XmlNodeType.Element, "LSOutputCurveMode", null); xmlLsOutputCurveMode.InnerText = stickOutputCurveString(getLsOutCurveMode(device)); rootElement.AppendChild(xmlLsOutputCurveMode);
@@ -4376,6 +4385,14 @@ namespace DS4Windows
 
                 try { Item = m_Xdoc.SelectSingleNode("/" + rootname + "/RSCurve"); int.TryParse(Item.InnerText, out rsCurve[device]); }
                 catch { rsCurve[device] = 0; missingSetting = true; }
+
+                try {
+                    Item = m_Xdoc.SelectSingleNode("/" + rootname + "/ResistTriggerPresetIndex");
+                    int temp = 0;
+                    int.TryParse(Item.InnerText, out temp);
+                    resistTriggerPresetIdx[device] = (temp >= 0 && temp <= 2) ? temp : 0;
+                }
+                catch { resistTriggerPresetIdx[device] = 0; missingSetting = true; }
 
                 try {
                     Item = m_Xdoc.SelectSingleNode("/" + rootname + "/BTPollRate");
@@ -5878,6 +5895,7 @@ namespace DS4Windows
             scrollSensitivity[device] = 0;
             touchpadInvert[device] = 0;
             buttonMouseInfos[device].mouseAccel = false;
+            resistTriggerPresetIdx[device] = 0;
             btPollRate[device] = 4;
 
             lsOutputSettings[device].ResetSettings();
@@ -6378,6 +6396,8 @@ namespace DS4Windows
                 {
                     tempDev.setIdleTimeout(idleDisconnectTimeout[device]);
                     tempDev.setBTPollRate(btPollRate[device]);
+                    if (tempDev is DualSenseDevice)
+                        ((DualSenseDevice)tempDev).SetResistiveTriggerSetting(resistTriggerPresetIdx[device]);
                     if (xinputStatus && xinputPlug)
                     {
                         OutputDevice tempOutDev = control.outputDevices[device];

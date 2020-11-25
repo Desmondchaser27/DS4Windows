@@ -602,6 +602,13 @@ namespace DS4WinWPF.DS4Forms.ViewModels
             set => tempBtPollRate = value;
         }
 
+        private int dsResistTrigger;
+        public int TempResistTriggerPresetIndex
+        {
+            get => dsResistTrigger;
+            set => dsResistTrigger = value;
+        }
+
         public int ControllerTypeIndex
         {
             get
@@ -1983,6 +1990,7 @@ namespace DS4WinWPF.DS4Forms.ViewModels
             tempControllerIndex = ControllerTypeIndex;
             Global.outDevTypeTemp[device] = OutContType.X360;
             tempBtPollRate = Global.BTPollRate[device];
+            dsResistTrigger = Global.ResistTriggerState[device];
 
             outputMouseSpeed = CalculateOutputMouseSpeed(ButtonMouseSensitivity);
             mouseOffsetSpeed = RawButtonMouseOffset * outputMouseSpeed;
@@ -2468,6 +2476,7 @@ namespace DS4WinWPF.DS4Forms.ViewModels
             tempControllerIndex = ControllerTypeIndex;
             Global.outDevTypeTemp[device] = Global.OutContType[device];
             tempBtPollRate = Global.BTPollRate[device];
+            dsResistTrigger = Global.ResistTriggerState[device];
             outputMouseSpeed = CalculateOutputMouseSpeed(ButtonMouseSensitivity);
             mouseOffsetSpeed = RawButtonMouseOffset * outputMouseSpeed;
         }

@@ -1041,7 +1041,7 @@
                                                     Margin="{StaticResource spaceMargin}" />
                                     <TextBlock Text="units" FontSize="10" Margin="{StaticResource spaceMargin}" VerticalAlignment="Center" />
                                 </StackPanel>
-                                
+
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                     <CheckBox Content="Use Smoothing" IsChecked="{Binding SASteeringWheelUseSmoothing}" />
                                 </StackPanel>
@@ -1297,6 +1297,19 @@
                                 </StackPanel>
                             </StackPanel>
                         </GroupBox>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="Resistive Triggers">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="10,20,0,10">
+                        <Label Content="Presets"/>
+                        <ComboBox x:Name="resistTriggerPresets" Width="200" SelectedIndex="{Binding TempResistTriggerPresetIndex, FallbackValue=0}" VerticalContentAlignment="Center" Margin="10,0,0,0">
+                            <ComboBoxItem Content="Off"/>
+                            <ComboBoxItem Content="Gamecube Triggers"/>
+                            <ComboBoxItem Content="GTA IV Aiming (Resist at 50%)"/>
+                        </ComboBox>
                     </StackPanel>
                 </StackPanel>
             </TabItem>

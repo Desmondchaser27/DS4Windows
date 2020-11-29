@@ -941,7 +941,7 @@ namespace DS4WinWPF.DS4Library.InputDevices
             int crcpos = BT_OUTPUT_REPORT_LENGTH - 4;
             calcCrc32 = ~Crc32Algorithm.Compute(outputBTCrc32Head);
             //calcCrc32 = ~Crc32Algorithm.CalculateBasicHash(ref calcCrc32, ref outputReport, 0, BT_OUTPUT_REPORT_LENGTH-4);
-            calcCrc32 = ~Crc32Algorithm.CalculateFasterBTHash(ref calcCrc32, ref outputReport, ref crcOffset, ref crcpos);
+            calcCrc32 = ~Crc32Algorithm.CalculateFasterBT78Hash(ref calcCrc32, ref outputReport, ref crcOffset, ref crcpos);
 
             outputReport[74] = (byte)calcCrc32;
             outputReport[75] = (byte)(calcCrc32 >> 8);

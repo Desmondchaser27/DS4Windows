@@ -350,8 +350,8 @@ namespace DS4WinWPF.DS4Library.InputDevices
                 //Gamecube Trigger preset
                 case 1:
                     resistiveTriggerOutputs[0] = 0x02;
-                    resistiveTriggerOutputs[1] = 0x95;
-                    resistiveTriggerOutputs[2] = 0xc0;
+                    resistiveTriggerOutputs[1] = 0x75;
+                    resistiveTriggerOutputs[2] = 0xa2;
                     resistiveTriggerOutputs[3] = 0xff;
                     resistiveTriggerOutputs[4] = 0xff;
                     resistiveTriggerOutputs[5] = 0xff;
@@ -362,8 +362,8 @@ namespace DS4WinWPF.DS4Library.InputDevices
                     resistiveTriggerOutputs[10] = 0xff;
 
                     resistiveTriggerOutputs[11] = 0x02;
-                    resistiveTriggerOutputs[12] = 0x95;
-                    resistiveTriggerOutputs[13] = 0xc0;
+                    resistiveTriggerOutputs[12] = 0x75;
+                    resistiveTriggerOutputs[13] = 0xa2;
                     resistiveTriggerOutputs[14] = 0xff;
                     resistiveTriggerOutputs[15] = 0xff;
                     resistiveTriggerOutputs[16] = 0xff;
@@ -1028,7 +1028,7 @@ namespace DS4WinWPF.DS4Library.InputDevices
                  * 0x00 off
                  * Values range 0x01 - 0xFF
                  * These addresses determine at what point during trigger press the effect starts
-                 * 0xFF is highest point on trigger (entire trigger press), 0x01 is lowest trigger press (pressed all the way down)
+                 * 0xFF is lowest point on trigger (entire trigger press), 0x01 is highest trigger press (pressed all the way down)
                 */
                 //out[13]/out[24]
                 /*
